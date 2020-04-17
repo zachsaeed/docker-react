@@ -1,0 +1,30 @@
+#
+
+version: '3'
+
+services:
+  web:
+    stdin_open: true # to fix a react bug. See React App Exited With Code 0 in FAQs
+    # build: . # assumes a Dockerfile in current working directory. but we are using a custom name: Dockerfile.dev
+    # To make it use Dockerfile.dev, we use the following syntax for build:
+    build:
+      context: . # defines where we want all the files and folders to be pulled for this. '.' means current working directory
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - /app/node_modules
+      - .:/app
+  tests:
+    stdin_open: true # to fix a react bug. See React App Exited With Code 0 in FAQs
+    # build: . # assumes a Dockerfile in current working directory. but we are using a custom name: Dockerfile.dev
+    # To make it use Dockerfile.dev, we use the following syntax for build:
+    build:
+      context: . # defines where we want all the files and folders to be pulled for this. '.' means current working directory
+      dockerfile: Dockerfile.dev
+    # ports: Not needed for tests as tests execute on CLI. Browser access not required
+    #   - "3000:3000"
+    volumes:
+      - /app/node_modules
+      - .:/app
+    command: ["npm", "run", "test"]  # To override the default start command
