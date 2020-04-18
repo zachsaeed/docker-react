@@ -1,3 +1,5 @@
+#
+
 language: generic # Optional. Inserted if your travis build fails with “rakefile not found”
 
 sudo: required  # anytime we need to use docker, we need sudo priveleges
@@ -15,3 +17,42 @@ script: # This section contaisn all the commands. travis is going to watch the o
   # To work around this, so that the test suite automatically exits after the first run,  we pass use  CI=true npm run test. The test command will force Jest to run in CI-mode, and tests will only run once instead of launching the watcher.
   # See: https://create-react-app.dev/docs/running-tests/#linux-macos-bash
   # and see and environment variables in Docker here: https://docs.docker.com/engine/reference/run/#env-environment-variables
+
+deploy: # This section is used for deployments
+  provider: elasticbeanstalk # travis CI comes preconfigured to deploy to a number of different providers
+  region: "us-west-2" # region depends upon where you originally created your elastic beanstalk application on AWS. This is visible in the URL
+  # For example your elastic beanstalk URL: Docker-enc.qbtbvwcxmh.us-west-2.elasticbeanstalk.com
+  # COpy from URL and place in double quotes
+  app: docker # same name you created o elsatic beanstalk for your app
+  env: "Docker-env" # This is present where you copied your URL from on the dashboard. Put it in  double quotes
+
+  # When travis deploys your code base, it will take all the files in the github repo, zip them up in one single file, copy them into an S3 bucket, which is a hardrive service running on AWS
+  # Travis will then poke elastic beanstalk to let it know I have just uploaded this file. use that to redeploy your application. This will be used as the name of he S3 bucket that travis CI will tell elastic beanstalk to copy from
+  # This S3 bucket is automatically generated for you when you initially created the elastic beanstalk instance. To get the name, goto services in AWS, search for S3
+  # Click on it to see a list of buckets. The bucket you are looking for will be elasticbeastalk-us-west-2-306471234234. (Formatted: elasticbeanstalk-your-region-ID
+  #Use that name here in double quotes
+  bucket_name: "elasticbeastalk-us-west-2-306471234234"
+
+  # The above S3 bucket gets used for all the elasticbeanstalk environments you create. Look at the folder with the name of your project.
+  # If its not there it will be created on first deployment automatically. this name is the same as your app name
+  bucket_path: "docker"
+
+  # We will be working on feature branches which will be pulled into master. We want to deploy only when master gets updated:
+  on:
+    branch: master
+
+  # API keys that will give Travis, access to our AWS account. They need to be generated on our AWS console. Go to services tab and search for IAM
+  # This is a service to manage API keys for ouside services to connect. Click on users on the left and create a new user.
+  # Add user: docker-react-travis-ci
+  # Access type: Programatic Access
+  # Click next for permissions and click ->attach existing policies directly
+  # These are essentially permissions for the new user above.
+  # Search for 'beanstalk' which shows some policies. Check on the one with description: Provides full access
+  # Click on next for review page and then click -> create user
+  # Please note that the secret access key will be showed to you only one time. So when you click show, note it down.
+  # Otherwise you will have to regenerate the key entirely
+  # Do not Copy paste those below as this file will be in your github public repo and can be seen by everyone.
+  # Instead go to travis CI dashboard. Pull up your project. click on more options settings and define them as environment variables there
+  # They will be encrypted and stored by travis CI. Save our values here with the names AWS_ACCESS_KEY and AWS_SECRET_KE. Click on add for each:
+  access_key_id: $AWS_ACCESS_KEY # This value will come from the Travis Environment variable created above
+  secret_access_key: $AWS_SECRET_KEY

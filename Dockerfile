@@ -17,6 +17,10 @@ RUN npm run build
 # using the official nginx image from docker hub
 FROM nginx
 
+# A different wayfor port mappings unike: docker run -p 3000:3000 <image ID>. This does absolutely nothing on our laptops so we use -p in the docker run command for our local machines
+# AWS Elastic Beanstakk is different as it will look for this instructon. it will map this port directly, automatically
+EXPOSE 80
+
 # I want to copy something <from phase builder> <from directory> <to directory>. To see where to copy in nginx, look at documentation for nginx on docker hub
 COPY --from=builder /app/build /usr/share/nginx/html
 
