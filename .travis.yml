@@ -1,0 +1,17 @@
+language: generic # Optional. Inserted if your travis build fails with “rakefile not found”
+
+sudo: required  # anytime we need to use docker, we need sudo priveleges
+services: # List the services we require in Trvis CI
+  - docker # We need the docker CLI which Travis CI will automatically install
+
+before install: # A series of different commands to be executed before our tests are run or deployment
+  - docker build -t zsaeed/docker-react -f Dockerfile.dev . # this command gives us the id of the image we build. SInce i is difficult to randomly juggle that idea in the next commands we will just tag this image using -t
+  # Note: we can use any tag like TESTME instead of zsaeed/docker-react as this image will be used only within travis CI
+
+# This line tells travis all the different commands to run our test suite
+script: # This section contaisn all the commands. travis is going to watch the ouput of each of these commands. If a command returns a status code other than zero, it will assume the build failed or our tests failed to run properly and assume our code is essentially broken
+  - docker run -e CI=true zsaeed/docker-react npm run teste # Startup our container and run the test
+  # travis assumes our test runs and exits automatically and says OK successfully ran all tests or something wrong just occurred however, the default test command never exits. It shows us options and waits for input on what we need to do next.
+  # To work around this, so that the test suite automatically exits after the first run,  we pass use  CI=true npm run test. The test command will force Jest to run in CI-mode, and tests will only run once instead of launching the watcher.
+  # See: https://create-react-app.dev/docs/running-tests/#linux-macos-bash
+  # and see and environment variables in Docker here: https://docs.docker.com/engine/reference/run/#env-environment-variables
